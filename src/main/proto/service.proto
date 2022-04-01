@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option java_package = "fr.polytech.grpc.proto";
+
+/*
+ * Définition du service
+ */
+service Proto {
+  rpc Handle(Request) returns(Reply);
+}
+
+/*
+ * Définition protobuf des messages Request et Reply
+ */
+
+message Info {
+  string sender = 1;					// nom émetteur du message
+  uint64 timestamp = 2;				// date d'envoi du message
+  uint32 id = 3;						// id
+}
+
+message Request {
+  Info info = 1;
+  map<string, Data> data = 2;
+}
+
+message Data {
+  float data1 = 1;
+  bool data2 = 2;
+  repeated int32 data3 = 3;
+}
+
+message Reply {
+  Info info = 1;
+  uint32 handled = 2;	 		// nb de données traitées
+  oneof result {				// message ou status d'erreur
+    string message = 3;
+    int32 status = 4;
+  }
+}
+
