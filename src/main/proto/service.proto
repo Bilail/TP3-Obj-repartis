@@ -5,7 +5,7 @@ option java_package = "fr.polytech.grpc.proto";
 /*
  * Définition du service
  */
-service Proto {
+service Newsletter {
   rpc Subscribe(Request) returns (Reply);
   rpc GetData(Request) returns (stream Reply);
   rpc Unsubscribe(Request) returns (Reply);

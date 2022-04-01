@@ -1,51 +1,86 @@
 import fr.polytech.grpc.proto.Service.*;
-import fr.polytech.grpc.proto.ProtoGrpc;
+
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import fr.polytech.grpc.proto.NewsletterGrpc;
+import fr.polytech.grpc.proto.NewsletterGrpc.NewsletterBlockingStub;
+import fr.polytech.grpc.proto.NewsletterGrpc.NewsletterStub;
+
+
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class Client {
 
     private ManagedChannel channel;
-    protected ProtoGrpc.ProtoBlockingStub blockingStub;
+    protected NewsletterGrpc.NewsletterBlockingStub blockingStub;
+    private NewsletterStub asyncStub;
 
     public Client(String host, int port) {
-        channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
-        initStubs(channel);
+        this(ManagedChannelBuilder.forAddress(host, port).usePlaintext());
     }
 
-    protected void initStubs(ManagedChannel channel) {
-
-        blockingStub = ProtoGrpc.newBlockingStub(channel);
+    public Client(ManagedChannelBuilder<?> channelBuilder) {
+        channel = channelBuilder.build();
+        blockingStub = NewsletterGrpc.newBlockingStub(channel);
+        asyncStub = NewsletterGrpc.newStub(channel);
     }
 
-    public Reply sendDatatoServer(Info inf, Map<String, Data> data){
-         Request request = Request.newBuilder().setInfo(inf).putAllData(data).build();
-         Reply reply = blockingStub.handle(request);
-         return reply;
 
+    private StreamObserver<Reply> replyObserver1 = new StreamObserver<>() {
+        private List<String> msg = new ArrayList<>();
+
+        @Override
+        public void onNext(Reply value) {
+            msg.add(value.getMsg());
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
+
+        @Override
+        public void onCompleted() {
+            msg.forEach(System.out::println);
+        }
+    };
+
+    public Stream<String> readData (String name) {
+        Request request = Request.newBuilder().setName(name).build();
+        Iterator<Reply> it = blockingStub.readData(request);
+        Iterable<Reply> iterable = () -> it;
+        return StreamSupport.stream(iterable.spliterator(), false).map(reply -> reply.getMsg());
     }
+
+    public void subscribe(String name){
+        Request request = Request.newBuilder().setName(name).build();
+        Reply reply = blockingStub.subscribe(request);
+    }
+
+    public void unsubscribe(String name){
+        Request request = Request.newBuilder().setName(name).build();
+        Reply reply = blockingStub.subscribe(request);
+    }
+
+
 
     public static void main(String[] args) {
+
         Client client = new Client("localhost", 1664);
 
-        Info info = Info.newBuilder().setSender("Dupont").setTimestamp(10101010).setId(101).build();
+        // Abonnement
+        client.subscribe("Bilail");
 
-        Data d1 = Data.newBuilder().setData1((float)1.5).setData2(true).addAllData3(new ArrayList<>(Arrays.asList(1, 2, 3))).build();
-        Data d2 = Data.newBuilder().setData1((float)1.7).setData2(false).addAllData3(new ArrayList<>(Arrays.asList(4, 5, 6))).build();
+        // Read Data
+        client.readData("Bilail").forEach(System.out::println);
 
-        Map<String, Data> dataMap = new HashMap<>();
-        dataMap.put("test1", d1);
-        dataMap.put("test2", d2);
+        //Désinscription
+        client.unsubscribe("Bilail");
 
-        System.out.println(client.sendDatatoServer(info, dataMap));
-
-
-        System.out.println("Fin");
     }
 
 }
