@@ -59,11 +59,15 @@ public class Client {
     public void subscribe(String name){
         Request request = Request.newBuilder().setName(name).build();
         Reply reply = blockingStub.subscribe(request);
+
+        System.out.println(" Bienvenue nouveau Abonnée");
     }
 
     public void unsubscribe(String name){
         Request request = Request.newBuilder().setName(name).build();
-        Reply reply = blockingStub.subscribe(request);
+        Reply reply = blockingStub.unsubscribe(request);
+
+        System.out.println(" Au revoir ex-Abonnée");
     }
 
 
