@@ -57,7 +57,7 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
         else {
             System.out.println("INFO : Début de vos messages");
             while(Bdd.containsKey(name)) {
-                Reply reply = Reply.newBuilder().setMsg(Bdd.get(name).poll()).build()
+                Reply reply = Reply.newBuilder().setMsg(Bdd.get(name)).build()
             }
         }
 
