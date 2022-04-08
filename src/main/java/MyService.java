@@ -14,7 +14,7 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
     Feeder feeder = new Feeder(Bdd);
 
     public MyService() {
-        new Thread(feeder).start();
+        feeder.run();
     }
 
     /**
@@ -55,10 +55,10 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
 
                 Bdd.remove(name); // on le supprime de la bdd
                 System.out.println(name + " est desabonne");
-                reply.setMsg("L'utiliseur  " + name + " est désabonné.");
+                reply.setMsg(name + " est désabonné.");
             } else {
                 System.out.println(" ERROR : " + name + " n'est pas inscrit");
-                reply.setMsg(" ERROR : " + name + " n'est pas inscrit");
+                reply.setMsg(name + " n'est pas inscrit");
             }
         }
         responseObserver.onNext(reply.build());
@@ -83,6 +83,7 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
                 if (Bdd.containsKey(name)) { // on verifie si le client est abonne
                     while (!Bdd.get(name).isEmpty()) { // On verifie si il a des messages non lus
                         reply.setMsg(Bdd.get(name).poll()); // on lui envoie les messages
+                        System.out.println("Message transféré à " + name);
                         responseObserver.onNext(reply.build());
                     }
                 } else {

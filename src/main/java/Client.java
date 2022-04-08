@@ -9,8 +9,7 @@ import fr.polytech.grpc.proto.NewsletterGrpc.NewsletterStub;
 
 
 import java.util.*;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+
 
 public class Client {
 
@@ -30,11 +29,9 @@ public class Client {
 
 
     private StreamObserver<Reply> replyObserver = new StreamObserver<>() {
-        private List<String> msg = new ArrayList<>();
 
         @Override
         public void onNext(Reply value) {
-            msg.add(value.getMsg());
             System.out.println(value.getMsg());
         }
 
@@ -45,16 +42,9 @@ public class Client {
 
         @Override
         public void onCompleted() {
-            //msg.forEach(System.out::println);
+            System.out.println("Stream Has Ended.");
         }
     };
-
-    public Stream<String> readData (String name) {
-        Request request = Request.newBuilder().setName(name).build();
-        Iterator<Reply> it = blockingStub.getData(request);
-        Iterable<Reply> iterable = () -> it;
-        return StreamSupport.stream(iterable.spliterator(), false).map(reply -> reply.getMsg());
-    }
 
     public void getData(String name) {
         Request request = Request.newBuilder().setName(name).build();
@@ -65,16 +55,15 @@ public class Client {
         Request request = Request.newBuilder().setName(name).build();
         Reply reply = blockingStub.subscribe(request);
 
-        System.out.println(" Bienvenue nouveau Abonnée");
+        System.out.println(reply.getMsg());
     }
 
     public void unsubscribe(String name){
         Request request = Request.newBuilder().setName(name).build();
         Reply reply = blockingStub.unsubscribe(request);
 
-        System.out.println(" Au revoir ex-Abonnée");
+        System.out.println(reply.getMsg());
     }
-
 
 
     public static void main(String[] args) throws InterruptedException {
@@ -87,7 +76,6 @@ public class Client {
 
         // Read Data
         client.getData(name);
-
 
         Thread.sleep(30000);
 
