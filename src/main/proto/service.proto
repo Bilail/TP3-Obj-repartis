@@ -7,7 +7,7 @@ option java_package = "fr.polytech.grpc.proto";
  */
 service Newsletter {
   rpc Subscribe(Request) returns (Reply);
-  rpc ReadData(Request) returns (stream Reply);
+  rpc GetData(Request) returns (stream Reply);
   rpc Unsubscribe(Request) returns (Reply);
 }
 
