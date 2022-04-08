@@ -11,10 +11,12 @@ import java.util.Queue;
 public class MyService extends NewsletterGrpc.NewsletterImplBase {
 
     public MyService() {
+        new Thread(feeder).start();
     }
 
     Map<String, Queue<String>> Bdd = new HashMap<>();
     Feeder feeder = new Feeder(Bdd);
+
 
     @Override
     public void subscribe(Request request, StreamObserver<Reply> responseObserver){
@@ -25,9 +27,11 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
             reply.setMsg(" ERROR : " + name + " est déja inscrit");
         }
         else {
-            System.out.println("Nouveau Abonnée : " + name);
-            Bdd.put(name, new LinkedList<>());
-            reply.setMsg("Nouveau Abonnée : " + name);
+            synchronized (Bdd) {
+                System.out.println("Nouveau Abonnée : " + name);
+                Bdd.put(name, new LinkedList<>());
+                reply.setMsg("Nouveau Abonnée : " + name);
+            }
         }
 
         responseObserver.onNext(reply.build());
@@ -39,9 +43,11 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
         String name = request.getName();
         Reply.Builder reply = Reply.newBuilder();
         if (Bdd.containsKey(name)){
-            Bdd.remove(name);
-            System.out.println(name+ " est desabonne");
-            reply.setMsg("L'utiliseur  " + name + " est désabonné.");
+            synchronized (Bdd) {
+                Bdd.remove(name);
+                System.out.println(name + " est desabonne");
+                reply.setMsg("L'utiliseur  " + name + " est désabonné.");
+            }
         }
         else {
             System.out.println(" ERROR : " + name+ " n'est pas inscrit");
@@ -56,14 +62,19 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
     public void getData(Request request, StreamObserver<Reply> responseObserver) {
         String name = request.getName();
         Reply.Builder reply = Reply.newBuilder();
-        if (!Bdd.containsKey(name)) {
-            System.out.println(" ERROR : " + name + " n'est pas inscrit");
-            reply.setMsg(" ERROR : " + name + " n'est pas inscrit");
-        } else {
-            while (Bdd.containsKey(name)) {
-                while (!Bdd.get(name).isEmpty()) {
-                    reply.setMsg(Bdd.get(name).poll());
-                    responseObserver.onNext(reply.build());
+        synchronized (Bdd) {
+            while (true) {
+                try {
+                    Bdd.wait();
+                } catch (InterruptedException ignored) {}
+
+                if (!Bdd.containsKey(name)) {
+                    while (!Bdd.get(name).isEmpty()) {
+                        reply.setMsg(Bdd.get(name).poll());
+                        responseObserver.onNext(reply.build());
+                    }
+                } else {
+                    break;
                 }
             }
         }

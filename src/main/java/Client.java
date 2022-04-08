@@ -29,12 +29,13 @@ public class Client {
     }
 
 
-    private StreamObserver<Reply> replyObserver1 = new StreamObserver<>() {
+    private StreamObserver<Reply> replyObserver = new StreamObserver<>() {
         private List<String> msg = new ArrayList<>();
 
         @Override
         public void onNext(Reply value) {
             msg.add(value.getMsg());
+            System.out.println(value.getMsg());
         }
 
         @Override
@@ -44,7 +45,7 @@ public class Client {
 
         @Override
         public void onCompleted() {
-            msg.forEach(System.out::println);
+            //msg.forEach(System.out::println);
         }
     };
 
@@ -53,6 +54,11 @@ public class Client {
         Iterator<Reply> it = blockingStub.getData(request);
         Iterable<Reply> iterable = () -> it;
         return StreamSupport.stream(iterable.spliterator(), false).map(reply -> reply.getMsg());
+    }
+
+    public void getData(String name) {
+        Request request = Request.newBuilder().setName(name).build();
+        asyncStub.getData(request, replyObserver);
     }
 
     public void subscribe(String name){
@@ -71,18 +77,21 @@ public class Client {
 
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         Client client = new Client("localhost", 1664);
 
         // Abonnement
-        client.subscribe("Bilail");
+        client.subscribe("HHdf");
 
         // Read Data
-        client.readData("Bilail").forEach(System.out::println);
+        client.getData("HHdf");
+
+
+        Thread.sleep(30000);
 
         //Désinscription
-        client.unsubscribe("Bilail");
+        client.unsubscribe("HHdf");
 
     }
 
