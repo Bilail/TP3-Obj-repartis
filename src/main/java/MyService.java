@@ -10,13 +10,11 @@ import java.util.Queue;
 
 public class MyService extends NewsletterGrpc.NewsletterImplBase {
 
-
-
     Map<String, Queue<String>> Bdd = new HashMap<>();
     Feeder feeder = new Feeder(Bdd);
 
     public MyService() {
-        new Thread(feeder).start();
+        feeder.run();
     }
 
     @Override
@@ -47,11 +45,11 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
             if (Bdd.containsKey(name)) {
 
                 Bdd.remove(name);
-                System.out.println(name + " est desabonne");
-                reply.setMsg("L'utiliseur  " + name + " est désabonné.");
+                System.out.println(name + " est desabonne.");
+                reply.setMsg(name + " est désabonné.");
             } else {
                 System.out.println(" ERROR : " + name + " n'est pas inscrit");
-                reply.setMsg(" ERROR : " + name + " n'est pas inscrit");
+                reply.setMsg(name + " n'est pas inscrit");
             }
         }
 
@@ -72,6 +70,7 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
                 if (Bdd.containsKey(name)) {
                     while (!Bdd.get(name).isEmpty()) {
                         reply.setMsg(Bdd.get(name).poll());
+                        System.out.println("Message transféré à " + name);
                         responseObserver.onNext(reply.build());
                     }
                 } else {
@@ -79,7 +78,6 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
                 }
             }
         }
-
         responseObserver.onCompleted();
     }
 
