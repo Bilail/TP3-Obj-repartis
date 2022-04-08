@@ -5,7 +5,6 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
 import fr.polytech.grpc.proto.NewsletterGrpc;
-import fr.polytech.grpc.proto.NewsletterGrpc.NewsletterBlockingStub;
 import fr.polytech.grpc.proto.NewsletterGrpc.NewsletterStub;
 
 
@@ -51,7 +50,7 @@ public class Client {
 
     public Stream<String> readData (String name) {
         Request request = Request.newBuilder().setName(name).build();
-        Iterator<Reply> it = blockingStub.readData(request);
+        Iterator<Reply> it = blockingStub.getData(request);
         Iterable<Reply> iterable = () -> it;
         return StreamSupport.stream(iterable.spliterator(), false).map(reply -> reply.getMsg());
     }
