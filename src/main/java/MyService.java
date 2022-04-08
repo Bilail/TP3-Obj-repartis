@@ -10,15 +10,19 @@ import java.util.Queue;
 
 public class MyService extends NewsletterGrpc.NewsletterImplBase {
 
-
-
-    Map<String, Queue<String>> Bdd = new HashMap<>();
+    Map<String, Queue<String>> Bdd = new HashMap<>(); // On stocke le nom des clients avec leurs messages accumulés
     Feeder feeder = new Feeder(Bdd);
 
     public MyService() {
         new Thread(feeder).start();
     }
 
+    /**
+     * Fonction d'abonnement, elle ajoute le client si il ne l'etait pas deja
+     * dans la Bdd
+     * @param request le nom du client
+     * @param responseObserver
+     */
     @Override
     public void subscribe(Request request, StreamObserver<Reply> responseObserver){
         String name = request.getName();
@@ -39,6 +43,11 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
         responseObserver.onCompleted();
     }
 
+    /**
+     * Fonction de desabonnement, elle supprime le client si il etait abonne de la bdd
+     * @param request le nom du client
+     * @param responseObserver
+     */
     @Override
     public void unsubscribe(Request request, StreamObserver<Reply> responseObserver) {
         String name = request.getName();
@@ -59,23 +68,28 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
         responseObserver.onCompleted();
     }
 
+    /**
+     * Recuperation du flux de message attache au client
+     * @param request
+     * @param responseObserver
+     */
     @Override
     public void getData(Request request, StreamObserver<Reply> responseObserver) {
         String name = request.getName();
         Reply.Builder reply = Reply.newBuilder();
-        synchronized (Bdd) {
+        synchronized (Bdd) { // on pose un verrou sur la Bdd pour eviter les modification concurrents
             while (true) {
                 try {
-                    Bdd.wait();
+                    Bdd.wait(); // Attente de nouveau message
                 } catch (InterruptedException ignored) {}
 
-                if (Bdd.containsKey(name)) {
-                    while (!Bdd.get(name).isEmpty()) {
+                if (Bdd.containsKey(name)) { // on verifie si le client est abonne
+                    while (!Bdd.get(name).isEmpty()) { // On verifie si il a des messages non lus
                         reply.setMsg(Bdd.get(name).poll());
                         responseObserver.onNext(reply.build());
                     }
                 } else {
-                    break;
+                    break; // sinon on sort de la boucle car client plus abonne
                 }
             }
         }

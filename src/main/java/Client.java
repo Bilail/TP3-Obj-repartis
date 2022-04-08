@@ -81,7 +81,7 @@ public class Client {
 
         Client client = new Client("localhost", 1664);
 
-        String name = "2";
+        String name = "Bilail";
         // Abonnement
         client.subscribe(name);
 
