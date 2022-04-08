@@ -81,17 +81,18 @@ public class Client {
 
         Client client = new Client("localhost", 1664);
 
+        String name = "2";
         // Abonnement
-        client.subscribe("HHdf");
+        client.subscribe(name);
 
         // Read Data
-        client.getData("HHdf");
+        client.getData(name);
 
 
         Thread.sleep(30000);
 
         //Désinscription
-        client.unsubscribe("HHdf");
+        client.unsubscribe(name);
 
     }
 
