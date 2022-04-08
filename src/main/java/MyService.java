@@ -28,17 +28,15 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
         String name = request.getName();
         Reply.Builder reply = Reply.newBuilder();
         synchronized (Bdd) {
-            if (Bdd.containsKey(name)) {
+            if (Bdd.containsKey(name)) { // on verifie que le client est inscrit
                 System.out.println(" ERROR : " + name + " est déja inscrit");
                 reply.setMsg(" ERROR : " + name + " est déja inscrit");
             } else {
-
                 System.out.println("Nouveau Abonnée : " + name);
-                Bdd.put(name, new LinkedList<>());
+                Bdd.put(name, new LinkedList<>()); // on l'ajoute dans la Bdd, avec une liste de message vide
                 reply.setMsg("Nouveau Abonnée : " + name);
             }
         }
-
         responseObserver.onNext(reply.build());
         responseObserver.onCompleted();
     }
@@ -53,9 +51,9 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
         String name = request.getName();
         Reply.Builder reply = Reply.newBuilder();
         synchronized (Bdd) {
-            if (Bdd.containsKey(name)) {
+            if (Bdd.containsKey(name)) { // on verifie que le client est inscrit
 
-                Bdd.remove(name);
+                Bdd.remove(name); // on le supprime de la bdd
                 System.out.println(name + " est desabonne");
                 reply.setMsg("L'utiliseur  " + name + " est désabonné.");
             } else {
@@ -63,7 +61,6 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
                 reply.setMsg(" ERROR : " + name + " n'est pas inscrit");
             }
         }
-
         responseObserver.onNext(reply.build());
         responseObserver.onCompleted();
     }
@@ -85,7 +82,7 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
 
                 if (Bdd.containsKey(name)) { // on verifie si le client est abonne
                     while (!Bdd.get(name).isEmpty()) { // On verifie si il a des messages non lus
-                        reply.setMsg(Bdd.get(name).poll());
+                        reply.setMsg(Bdd.get(name).poll()); // on lui envoie les messages
                         responseObserver.onNext(reply.build());
                     }
                 } else {
@@ -93,7 +90,6 @@ public class MyService extends NewsletterGrpc.NewsletterImplBase {
                 }
             }
         }
-
         responseObserver.onCompleted();
     }
 
