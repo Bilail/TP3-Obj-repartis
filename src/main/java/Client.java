@@ -77,7 +77,7 @@ public class Client {
         // Read Data
         client.getData(name);
 
-        Thread.sleep(30000);
+        Thread.sleep(10000);
 
         //Désinscription
         client.unsubscribe(name);

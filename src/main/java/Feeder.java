@@ -26,7 +26,7 @@ public final class Feeder{
         scheduler.scheduleAtFixedRate(
                 this::addMessage,
                 0,
-                5,
+                2,
                 TimeUnit.SECONDS
         );
     }
